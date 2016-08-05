@@ -665,6 +665,7 @@ button_press_callback (GtkWidget *widget, GdkEventButton *event, gpointer callba
     FMListView *view;
     GtkTreeView *tree_view;
     GtkTreePath *path;
+    GtkWidget *caja_window;
     gboolean call_parent;
     GtkTreeSelection *selection;
     GtkWidgetClass *tree_view_class;
@@ -849,6 +850,11 @@ button_press_callback (GtkWidget *widget, GdkEventButton *event, gpointer callba
                 }
             }
 
+            if (event->button > 5) {
+                caja_window = GTK_WIDGET (fm_directory_view_get_caja_window (FM_DIRECTORY_VIEW (view)));
+                call_parent = !caja_navigation_window_button_press_event (caja_window, event);
+            }
+
             if (call_parent)
             {
                 tree_view_class->button_press_event (widget, event);
@@ -887,10 +893,15 @@ button_press_callback (GtkWidget *widget, GdkEventButton *event, gpointer callba
             view->details->double_click_path[1] = view->details->double_click_path[0];
             view->details->double_click_path[0] = NULL;
         }
-        /* Deselect if people click outside any row. It's OK to
-           let default code run; it won't reselect anything. */
-        gtk_tree_selection_unselect_all (gtk_tree_view_get_selection (tree_view));
-        tree_view_class->button_press_event (widget, event);
+        if (event->button > 5) {
+            caja_window = GTK_WIDGET (fm_directory_view_get_caja_window (FM_DIRECTORY_VIEW (view)));
+            call_parent = !caja_navigation_window_button_press_event (caja_window, event);
+        } else {
+	    /* Deselect if people click outside any row. It's OK to
+            let default code run; it won't reselect anything. */
+            gtk_tree_selection_unselect_all (gtk_tree_view_get_selection (tree_view));
+            tree_view_class->button_press_event (widget, event);
+        }
 
         if (event->button == 3)
         {
